@@ -1,38 +1,38 @@
 package com.supunhg.hora
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
 class TaskViewModel : ViewModel() {
-    var tasks by mutableStateOf(
-        listOf(
-            Task(1, "Buy Groceries", TaskStatus.PENDING),
-            Task(2, "Study Kotlin", TaskStatus.PENDING),
-            Task(3, "Workout", TaskStatus.PENDING),
-        )
-    )
-
-        private set
+    var tasks = mutableStateListOf<Task>() // Start with an empty task list
 
     fun toggleTask(taskId: Int) {
-        tasks = tasks.map {
-            if (it.id == taskId) {
-                it.copy(
-                    status = if (it.status == TaskStatus.PENDING) TaskStatus.DONE else TaskStatus.PENDING
-                )
-            } else it
+        val index = tasks.indexOfFirst { it.id == taskId }
+        if (index != -1) {
+            val task = tasks[index]
+            tasks[index] = task.copy(
+                status = if (task.status == TaskStatus.PENDING) TaskStatus.DONE else TaskStatus.PENDING
+            )
         }
     }
 
     fun dropTask(taskId: Int) {
-        tasks = tasks.map {
-            if (it.id == taskId) it.copy(status = TaskStatus.DROPPED) else it
+        val index = tasks.indexOfFirst { it.id == taskId }
+        if (index != -1) {
+            tasks[index] = tasks[index].copy(status = TaskStatus.DROPPED)
         }
     }
 
     fun deleteTask(taskId: Int) {
-        tasks = tasks.filter { it.id != taskId}
+        tasks.removeAll { it.id == taskId }
+    }
+
+    fun addTask(title: String) {
+        val newId = (tasks.maxOfOrNull { it.id } ?: 0) + 1
+        tasks.add(Task(newId, title, TaskStatus.PENDING))
     }
 }
+

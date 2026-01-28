@@ -9,10 +9,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -65,19 +68,65 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: TaskViewModel = viewModel()
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("Today Tasks")
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        bottomBar = {
+            BottomTaskInputBar(onAddTask = { viewModel.addTask(it) })
+        }
+    ) { innerPadding ->
+        Column(modifier = Modifier
+            .padding(innerPadding)
+            .padding(16.dp)
+        ) {
+            Text("Today Tasks")
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(viewModel.tasks, key = { it.id }) { task ->
+                    TaskItem(
+                        task = task,
+                        onToggle = { viewModel.toggleTask(task.id) },
+                        onDrop = { viewModel.dropTask(task.id) },
+                        onDelete = { viewModel.deleteTask(task.id) }
+                    )
+                }
+            }
+        }
+    }
+}
 
-        LazyColumn {
-            items(viewModel.tasks, key = { it.id }) { task ->
-                TaskItem(
-                    task = task,
-                    onToggle = { viewModel.toggleTask(task.id) },
-                    onDrop = { viewModel.dropTask(task.id) },
-                    onDelete = { viewModel.deleteTask(task.id)}
-                )
+@Composable
+fun BottomTaskInputBar(
+    onAddTask: (String) -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+
+    androidx.compose.material3.Surface(
+        tonalElevation = 8.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+        ) {
+            androidx.compose.material3.OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text("New Task") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    if (text.isNotBlank()) {
+                        onAddTask(text)
+                        text = ""
+                    }
+                }
+            ) {
+                Text("Add")
             }
         }
     }
@@ -130,6 +179,35 @@ fun TaskItem(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun TaskInput(
+    onAddTask: (String) -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+
+    Column {
+        androidx.compose.material3.OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("New Task") },
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                if (text.isNotBlank()) {
+                    onAddTask(text)
+                    text = ""
+                }
+            }
+        ) {
+            Text("Add Task")
+        }
     }
 }
 
